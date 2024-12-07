@@ -92,7 +92,7 @@ app.post("/convert", upload.single("file"), async (req, res) => {
 });
 
 // Sunucu başlat
-const PORT = 3000;
+const PORT = 443;
 app.listen(PORT, () => {
   console.log(`Sunucu http://localhost:${PORT} üzerinde çalışıyor.`);
 });
