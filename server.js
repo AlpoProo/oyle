@@ -3,7 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { PDFDocument } = require("pdf-lib");
-const officegen = require("officegen");
+const mammoth = require("mammoth");
 const sharp = require("sharp");
 
 const app = express();
@@ -11,12 +11,12 @@ const upload = multer({ dest: "uploads/" });
 
 app.use(express.static(path.join(__dirname)));
 
-// Route: Ana sayfa
+// Ana Sayfa
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Route: Dosya dönüştürme
+// Dosya Dönüştürme
 app.post("/convert", upload.single("file"), async (req, res) => {
   const { conversionType } = req.body;
   const file = req.file;
@@ -37,24 +37,19 @@ app.post("/convert", upload.single("file"), async (req, res) => {
       case "word_to_pdf": {
         const pdfDoc = await PDFDocument.create();
         const page = pdfDoc.addPage([600, 400]);
-        page.drawText("This is a converted Word file (dummy content).");
+        const { value: docText } = await mammoth.extractRawText({ path: file.path });
+        page.drawText(docText || "Empty document.");
         const pdfBytes = await pdfDoc.save();
         outputFilePath = path.join(outputDir, `${file.originalname}.pdf`);
         fs.writeFileSync(outputFilePath, pdfBytes);
         break;
       }
 
-      case "pdf_to_word": {
-        const docx = officegen("docx");
-        const pObj = docx.createP();
-        pObj.addText("This is a converted PDF file (dummy content).");
-        outputFilePath = path.join(outputDir, `${file.originalname}.docx`);
-        const out = fs.createWriteStream(outputFilePath);
-        docx.generate(out);
-        await new Promise((resolve, reject) => {
-          out.on("close", resolve);
-          out.on("error", reject);
-        });
+      case "pdf_to_text": {
+        const pdfDoc = await PDFDocument.load(fs.readFileSync(file.path));
+        const text = pdfDoc.getPage(0).getTextContent(); // Basit bir örnek
+        outputFilePath = path.join(outputDir, `${file.originalname}.txt`);
+        fs.writeFileSync(outputFilePath, text);
         break;
       }
 
@@ -73,13 +68,13 @@ app.post("/convert", upload.single("file"), async (req, res) => {
       fs.unlinkSync(outputFilePath); // Çıktı dosyasını sil
     });
   } catch (error) {
-    console.error(error);
+    console.error("Hata:", error);
     res.status(500).send("Dönüştürme sırasında bir hata oluştu.");
   }
 });
 
-// Sunucu başlat
-const PORT = 3131;
+// Sunucu Başlat
+const PORT = process.env.PORT || 3131;
 app.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
