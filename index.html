@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Converter</title>
+</head>
+<body>
+  <h1>Dosya Dönüştürücü</h1>
+  <form id="convertForm" enctype="multipart/form-data">
+    <label for="conversionType">Dönüştürme Türü:</label>
+    <select name="conversionType" id="conversionType">
+      <option value="word_to_pdf">Word to PDF</option>
+      <option value="pdf_to_word">PDF to Word</option>
+      <option value="image_to_jpg">Image to JPG</option>
+    </select>
+    <br><br>
+    <label for="fileInput">Dosya Seç:</label>
+    <input type="file" id="fileInput" name="file" required>
+    <br><br>
+    <button type="submit">Dönüştür</button>
+  </form>
+  <div id="output"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
